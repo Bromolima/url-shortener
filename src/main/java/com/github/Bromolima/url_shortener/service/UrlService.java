@@ -16,16 +16,14 @@ public class UrlService {
         this.urlRepository = urlRepository;
     }
 
-    public String shortenUrl(String longUrl, LocalDateTime expiresAt, HttpServletRequest servletRequest) {
+    public Url shortenUrl(String longUrl, LocalDateTime expiresAt) {
         String id;
         do {
             id = RandomStringUtils.randomAlphanumeric(6, 7);
         } while (urlRepository.existsById(id));
 
-        var redirectUrl = servletRequest.getRequestURL().toString().replace("shorten-url", id);
-
         urlRepository.save(new Url(id, longUrl, expiresAt));
 
-        return redirectUrl;
+        return urlRepository.findById(id).get();
     }
 }

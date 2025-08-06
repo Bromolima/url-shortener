@@ -27,7 +27,9 @@ public class UrlController {
     public ResponseEntity<ShortenUrlResponse> shortenUrl (@RequestBody ShortenUrlRequest request,
                                                           HttpServletRequest servletRequest) {
 
-        var redirectUrl = urlService.shortenUrl(request.url(), LocalDateTime.now().plusMinutes(1), servletRequest);
+        var Url = urlService.shortenUrl(request.url(), LocalDateTime.now().plusMinutes(1));
+
+        var redirectUrl = servletRequest.getRequestURL().toString().replace("shorten-url", Url.getId());
 
         return ResponseEntity.ok(new ShortenUrlResponse(redirectUrl));
     }
