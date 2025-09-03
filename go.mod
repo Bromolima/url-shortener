@@ -10,4 +10,6 @@ require (
 	go.uber.org/mock v0.6.0
 )
 
+require github.com/golang/mock v1.6.0
+
 require github.com/lib/pq v1.10.9 // direct

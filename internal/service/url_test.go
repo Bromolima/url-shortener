@@ -104,7 +104,6 @@ func Test_Redirect(t *testing.T) {
 	}
 
 	for _, tt := range testCases {
-		ctx := context.Background()
 		tt.setupMock()
 
 		_, err := service.Redirect(ctx, tt.shortCode)
