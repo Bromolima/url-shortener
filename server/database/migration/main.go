@@ -15,6 +15,9 @@ func main() {
 	}
 
 	db, err := database.InitPostgres()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	query := `
 	CREATE TABLE IF NOT EXISTS urls (

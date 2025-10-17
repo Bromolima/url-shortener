@@ -4,10 +4,10 @@ type Environment struct {
 	Env     string
 	ApiPort string
 	ApiUrl  string
-	DB      Mysql
+	DB      Postgres
 }
 
-type Mysql struct {
+type Postgres struct {
 	Host     string
 	Port     string
 	User     string

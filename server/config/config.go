@@ -20,12 +20,12 @@ func LoadEnvironment() error {
 		Env:     getEnv("ENV", "development"),
 		ApiPort: getEnv("API_PORT", "8080"),
 		ApiUrl:  getEnv("API_URL", "http://localhost:8080/"),
-		DB: Mysql{
+		DB: Postgres{
 			Host:     getEnv("DB_HOST", "localhost"),
-			Port:     getEnv("DB_PORT", "3306"),
-			User:     getEnv("DB_USER", "root"),
-			Password: getEnv("DB_PASSWORD", "root"),
-			Name:     getEnv("DB_NAME", "url-shortener"),
+			Port:     getEnv("DB_PORT", "5432"),
+			User:     getEnv("DB_USER", "admin"),
+			Password: getEnv("DB_PASSWORD", "admin"),
+			Name:     getEnv("DB_NAME", "url_shortener"),
 		},
 	}
 

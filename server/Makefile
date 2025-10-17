@@ -9,7 +9,7 @@ docker-up:
 	@docker-compose -f infra/docker-compose.yml up -d
 
 docker-down:
-	@docker-compose -f infra/docker-compose.yml down
+	@docker-compose -f infra/docker-compose.yml down --volumes
 
 run:
 	@go run main.go
