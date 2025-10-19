@@ -29,12 +29,14 @@ func NewUrlHandler(service service.UrlService) UrlHandler {
 }
 
 func (h *urlHandler) ShortenUrl(w http.ResponseWriter, r *http.Request) {
+	slog.Info("Received request to shorten URL")
 	var Url model.UrlPayload
 	if err := json.NewDecoder(r.Body).Decode(&Url); err != nil {
 		slog.Warn("Failed to decode request body", "error", err)
 		responses.Err(w, http.StatusUnprocessableEntity, err)
 		return
 	}
+	slog.Info("Request body decoded successfully")
 
 	if _, err := url.ParseRequestURI(Url.OriginalUrl); err != nil {
 		slog.Warn("Invalid URL format", "error", err)
@@ -51,9 +53,11 @@ func (h *urlHandler) ShortenUrl(w http.ResponseWriter, r *http.Request) {
 
 	slog.Info("URL shortened")
 
-	responses.JSON(w, http.StatusCreated, model.UrlResponse{
+	response := model.UrlResponse{
 		ShortCode: fmt.Sprintf("%s/%s", r.Host, shortCode),
-	})
+	}
+
+	responses.JSON(w, http.StatusCreated, response)
 }
 
 func (h *urlHandler) Redirect(w http.ResponseWriter, r *http.Request) {

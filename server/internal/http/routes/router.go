@@ -24,5 +24,11 @@ func (r *Router) GET(path string, handler http.HandlerFunc) {
 }
 
 func (r *Router) handleWithMethod(method, path string, handler http.HandlerFunc) {
-	r.Mux.HandleFunc(fmt.Sprintf("%s %s", method, path), handler)
+	r.Mux.HandleFunc(path, func(w http.ResponseWriter, req *http.Request) {
+		if req.Method != method {
+			http.Error(w, fmt.Sprintf("method %s not allowed", req.Method), http.StatusMethodNotAllowed)
+			return
+		}
+		handler(w, req)
+	})
 }
