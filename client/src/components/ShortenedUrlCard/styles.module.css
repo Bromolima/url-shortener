@@ -1,0 +1,35 @@
+.card {
+    background: var(--secondary);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 16px;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.url {
+    color: var(--text);
+    font-weight: 500;
+    overflow-wrap: break-word;
+    flex: 1;
+    margin-right: 16px;
+}
+
+.copyButton:hover {
+    background: var(--button-hover);
+}

@@ -1,0 +1,23 @@
+.button {
+    border: none;
+    background: var(--button);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: medium;
+    min-width: 120px;   
+    padding: 16px;
+    border-radius: 12px;
+    color: var(--accent-foreground);
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 4px 15px -5px var(--button);
+}
+
+.button:hover{
+    background: var(--button-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px -5px var(--button);
+}
