@@ -12,7 +12,7 @@ export function UrlOutput({shortenedUrl} : UrlOutputProps) {
 
     return (
         <div className={styles.output}>
-            <p className={styles.link}>{shortenedUrl}</p>
+            <a className={styles.link}>{shortenedUrl}</a>
             <CopyButton 
                 onClick={handleCopy}
             />

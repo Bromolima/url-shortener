@@ -9,7 +9,6 @@
 }
 
 .link {
-    text-decoration: none;
     color: var(--accent);
     font-size: large;
 }
