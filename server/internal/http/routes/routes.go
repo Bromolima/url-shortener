@@ -9,8 +9,8 @@ import (
 
 func SetupRoutes(r *Router, c *dig.Container) error {
 	return c.Invoke(func(urlHandler handler.UrlHandler) {
-		r.POST("v1/shorten", urlHandler.ShortenUrl)
-		r.GET("v1/{shortCode}", urlHandler.Redirect)
+		r.POST("/shorten", urlHandler.ShortenUrl)
+		r.GET("/{shortCode}", urlHandler.Redirect)
 		slog.Info("Routes setup completed")
 	})
 }

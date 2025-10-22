@@ -61,7 +61,7 @@ func (h *urlHandler) ShortenUrl(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *urlHandler) Redirect(w http.ResponseWriter, r *http.Request) {
-	shortCode := r.URL.Path[1:]
+	shortCode := r.PathValue("shortCode")
 	originalUrl, err := h.service.Redirect(r.Context(), shortCode)
 	if err != nil {
 		if errors.Is(err, model.ErrUrlNotFound) {
