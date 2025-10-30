@@ -14,14 +14,6 @@ type Url struct {
 	OriginalUrl string
 }
 
-type UrlPayload struct {
-	OriginalUrl string `json:"url"`
-}
-
-type UrlResponse struct {
-	ShortCode string `json:"short_code"`
-}
-
 func NewUrl(originalUrl, shortCode string) *Url {
 	return &Url{
 		ShortCode:   shortCode,

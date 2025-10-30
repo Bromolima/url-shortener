@@ -4,30 +4,16 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
-	"net/http"
 	"os"
 
 	"github.com/Bromolima/url-shortner-go/config"
 	"github.com/Bromolima/url-shortner-go/database"
 	"github.com/Bromolima/url-shortner-go/internal/http/routes"
-	"github.com/Bromolima/url-shortner-go/internal/injector"
+	"github.com/Bromolima/url-shortner-go/internal/pkg/injector"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 	"go.uber.org/dig"
 )
-
-func enableCORS(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-		w.Header().Set("Access-control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-
-		if r.Method == "OPTIONS" {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
-}
 
 func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
@@ -44,7 +30,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	router := routes.NewRouter()
+	router := gin.Default()
+	router.Use(cors.Default())
 	c := dig.New()
 
 	injector.SetupInjections(db, c)
@@ -54,5 +41,5 @@ func main() {
 	}
 
 	logger.Info("App running", "port", config.Env.ApiPort)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", config.Env.ApiPort), enableCORS(router.Mux)))
+	router.Run(fmt.Sprintf(":%s", config.Env.ApiPort))
 }

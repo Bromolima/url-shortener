@@ -24,7 +24,7 @@ export function UrlShortenerForm() {
       setLoading(true)
       setError('')
 
-    const response = await fetch('http://localhost:8080/shorten', {
+    const response = await fetch('http://localhost:8080/v1/shorten', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
