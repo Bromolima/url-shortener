@@ -2,8 +2,6 @@ package model
 
 import (
 	"errors"
-
-	"github.com/google/uuid"
 )
 
 var (
@@ -11,9 +9,9 @@ var (
 )
 
 type Url struct {
-	ID          string
-	OriginalUrl string
+	ID          int
 	ShortCode   string
+	OriginalUrl string
 }
 
 type UrlPayload struct {
@@ -26,8 +24,7 @@ type UrlResponse struct {
 
 func NewUrl(originalUrl, shortCode string) *Url {
 	return &Url{
-		ID:          uuid.New().String(),
-		OriginalUrl: originalUrl,
 		ShortCode:   shortCode,
+		OriginalUrl: originalUrl,
 	}
 }

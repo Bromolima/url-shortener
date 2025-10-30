@@ -1,10 +1,11 @@
 package config
 
 type Environment struct {
-	Env     string
-	ApiPort string
-	ApiUrl  string
-	DB      Postgres
+	Env       string
+	ApiPort   string
+	ApiUrl    string
+	SecretKey string
+	DB        Postgres
 }
 
 type Postgres struct {

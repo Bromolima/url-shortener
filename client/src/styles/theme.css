@@ -10,11 +10,11 @@
   --button: oklch(70% 0.2 270);
   --button-hover: oklch(75% 0.22 275);
   --text: oklch(30% 0.05 250);
-  --accent: oklch(75% 0.25 280);
+  --accent: oklch(39.43% 0.26974 265.182);
   --accent-foreground: oklch(99% 0 0);
   --border: oklch(90% 0.02 250);
   --input: oklch(95% 0.01 250);
-  --output: oklch(85% 0.03 250);
+  --output: oklch(89.001% 0.02982 248.245);
   --ring: oklch(70% 0.2 270);
   --placeholder: oklch(60% 0.05 250);
 }

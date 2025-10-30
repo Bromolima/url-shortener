@@ -17,9 +17,10 @@ func LoadEnvironment() error {
 	}
 
 	Env = Environment{
-		Env:     getEnv("ENV", "development"),
-		ApiPort: getEnv("API_PORT", "8080"),
-		ApiUrl:  getEnv("API_URL", "http://localhost:8080/"),
+		Env:       getEnv("ENV", "development"),
+		ApiPort:   getEnv("API_PORT", "8080"),
+		ApiUrl:    getEnv("API_URL", "http://localhost:8080/"),
+		SecretKey: getEnv("SECRET_KEY", "my_secret_key"),
 		DB: Postgres{
 			Host:     getEnv("DB_HOST", "localhost"),
 			Port:     getEnv("DB_PORT", "5432"),

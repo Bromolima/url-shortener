@@ -14,6 +14,7 @@ func SetupInjections(db *sql.DB, c *dig.Container) {
 	c.Provide(func() *sql.DB {
 		return db
 	})
+	c.Provide(service.NewHashUrlService)
 	c.Provide(repository.NewUrlRepository)
 	c.Provide(service.NewUrlService)
 	c.Provide(handler.NewUrlHandler)

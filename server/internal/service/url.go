@@ -7,38 +7,48 @@ import (
 
 	"github.com/Bromolima/url-shortner-go/internal/model"
 	"github.com/Bromolima/url-shortner-go/internal/repository"
-	"github.com/Bromolima/url-shortner-go/internal/utils"
 )
 
+//go:generate mockgen -source=url.go -destination=../../mocks/url_service.go -package=mocks
 type UrlService interface {
 	ShortenUrl(ctx context.Context, originalUrl string) (string, error)
 	Redirect(ctx context.Context, shortCode string) (string, error)
 }
 
 type urlService struct {
-	repository repository.UrlRepository
+	repository     repository.UrlRepository
+	hashUrlService HashUrlService
 }
 
-func NewUrlService(repository repository.UrlRepository) UrlService {
+func NewUrlService(repository repository.UrlRepository, hashUrlService HashUrlService) UrlService {
 	return &urlService{
-		repository: repository,
+		repository:     repository,
+		hashUrlService: hashUrlService,
 	}
 }
 
 func (s *urlService) ShortenUrl(ctx context.Context, originalUrl string) (string, error) {
-	shortCode, err := s.repository.FindByOriginalUrl(ctx, originalUrl)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+	shortCodeExists, err := s.repository.FindByOriginalUrl(ctx, originalUrl)
+	if err != nil {
 		return "", err
 	}
 
-	if shortCode != "" {
-		return shortCode, nil
+	if shortCodeExists != nil {
+		return *shortCodeExists, nil
 	}
 
-	shortCode = utils.GenerateShortCode(utils.ShortCodeLength)
+	url := model.NewUrl(originalUrl, "")
+	id, err := s.repository.Save(ctx, url.OriginalUrl)
+	if err != nil {
+		return "", err
+	}
 
-	url := model.NewUrl(originalUrl, shortCode)
-	if err := s.repository.Save(ctx, url); err != nil {
+	shortCode, err := s.hashUrlService.EncodeUrl(id)
+	if err != nil {
+		return "", err
+	}
+
+	if err := s.repository.SaveShortCode(ctx, shortCode, id); err != nil {
 		return "", err
 	}
 
