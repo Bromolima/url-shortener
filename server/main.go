@@ -26,11 +26,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if err := database.Migrate(db); err != nil {
-		log.Fatal(err)
-	}
-
 	router := gin.Default()
+	router.RedirectTrailingSlash = true
 	router.Use(cors.Default())
 	c := dig.New()
 

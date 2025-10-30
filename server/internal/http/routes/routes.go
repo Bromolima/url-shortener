@@ -8,8 +8,8 @@ import (
 
 func SetupRoutes(r *gin.Engine, c *dig.Container) error {
 	return c.Invoke(func(h *handler.UrlHandler) {
-		g := r.Group("v1")
+		g := r.Group("/v1")
 		g.POST("/shorten", h.ShortenUrl)
-		g.GET("/{shortCode}", h.Redirect)
+		g.GET("/:short_code", h.Redirect)
 	})
 }

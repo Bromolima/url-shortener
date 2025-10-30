@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"log/slog"
 
 	"github.com/Bromolima/url-shortner-go/internal/model"
 	"github.com/Bromolima/url-shortner-go/internal/repository"
@@ -28,17 +29,21 @@ func NewUrlService(repository repository.UrlRepository, hashUrlService HashUrlSe
 }
 
 func (s *urlService) ShortenUrl(ctx context.Context, originalUrl string) (string, error) {
-	shortCodeExists, err := s.repository.FindByOriginalUrl(ctx, originalUrl)
+	id, err := s.repository.FindByOriginalUrl(ctx, originalUrl)
 	if err != nil {
 		return "", err
 	}
 
-	if shortCodeExists != nil {
-		return *shortCodeExists, nil
+	if id != 0 {
+		shortCode, err := s.hashUrlService.EncodeUrl(id)
+		if err != nil {
+			return "", err
+		}
+		return shortCode, nil
 	}
 
-	url := model.NewUrl(originalUrl, "")
-	id, err := s.repository.Save(ctx, url.OriginalUrl)
+	url := model.NewUrl(originalUrl)
+	id, err = s.repository.Save(ctx, url.OriginalUrl)
 	if err != nil {
 		return "", err
 	}
@@ -48,15 +53,17 @@ func (s *urlService) ShortenUrl(ctx context.Context, originalUrl string) (string
 		return "", err
 	}
 
-	if err := s.repository.SaveShortCode(ctx, shortCode, id); err != nil {
-		return "", err
-	}
-
 	return shortCode, nil
 }
 
 func (s *urlService) Redirect(ctx context.Context, shortCode string) (string, error) {
-	originalUrl, err := s.repository.FindByShortCode(ctx, shortCode)
+	id, err := s.hashUrlService.DecodeUrl(shortCode)
+	if err != nil {
+		slog.Error("Failed to decode url", "error", err)
+		return "", model.ErrUrlNotFound
+	}
+
+	originalUrl, err := s.repository.FindByShortCode(ctx, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return "", model.ErrUrlNotFound

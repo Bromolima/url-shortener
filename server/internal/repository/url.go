@@ -8,9 +8,8 @@ import (
 
 type UrlRepository interface {
 	Save(ctx context.Context, originalUrl string) (int, error)
-	FindByShortCode(ctx context.Context, shortCode string) (string, error)
-	FindByOriginalUrl(ctx context.Context, originalUrl string) (*string, error)
-	SaveShortCode(ctx context.Context, shortCode string, id int) error
+	FindByShortCode(ctx context.Context, id int) (string, error)
+	FindByOriginalUrl(ctx context.Context, originalUrl string) (int, error)
 }
 
 type urlRepository struct {
@@ -40,15 +39,15 @@ func (r *urlRepository) Save(ctx context.Context, originalUrl string) (int, erro
 	return int(id), nil
 }
 
-func (r *urlRepository) FindByShortCode(ctx context.Context, shortCode string) (string, error) {
+func (r *urlRepository) FindByShortCode(ctx context.Context, id int) (string, error) {
 	query := `
 		SELECT original_url 
 		FROM urls
-		WHERE short_code = $1
+		WHERE id = $1
 	`
 
 	var originalUrl string
-	err := r.db.QueryRowContext(ctx, query, shortCode).Scan(&originalUrl)
+	err := r.db.QueryRowContext(ctx, query, id).Scan(&originalUrl)
 	if err != nil {
 		return "", err
 	}
@@ -56,42 +55,22 @@ func (r *urlRepository) FindByShortCode(ctx context.Context, shortCode string) (
 	return originalUrl, nil
 }
 
-func (r *urlRepository) FindByOriginalUrl(ctx context.Context, originalUrl string) (*string, error) {
+func (r *urlRepository) FindByOriginalUrl(ctx context.Context, originalUrl string) (int, error) {
 	query := `
-		SELECT short_code
+		SELECT id
 		FROM urls 
 		WHERE original_url = $1
 	`
 
-	var shortCode *string
-	err := r.db.QueryRowContext(ctx, query, originalUrl).Scan(&shortCode)
+	var id int
+	err := r.db.QueryRowContext(ctx, query, originalUrl).Scan(&id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
+			return 0, nil
 		}
 
-		return nil, err
+		return 0, err
 	}
 
-	return shortCode, nil
-}
-
-func (r *urlRepository) SaveShortCode(ctx context.Context, shortCode string, id int) error {
-	query := `
-		UPDATE urls SET short_code = $1
-		WHERE id = $2
-	`
-
-	stmt, err := r.db.Prepare(query)
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-
-	_, err = stmt.ExecContext(ctx, shortCode, id)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return id, nil
 }

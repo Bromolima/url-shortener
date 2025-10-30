@@ -27,7 +27,7 @@ func NewUrlHandler(service service.UrlService) *UrlHandler {
 
 func (h *UrlHandler) ShortenUrl(c *gin.Context) {
 	slog.Info("Received request to shorten URL")
-	var payload dto.UrlPayload
+	var payload dto.ShortenUrlPayload
 	if err := json.NewDecoder(c.Request.Body).Decode(&payload); err != nil {
 		slog.Warn("Failed to decode request body", "error", err)
 		restErr := resterrors.NewUnprocessableEntityError("Failed to process request body")
@@ -53,15 +53,22 @@ func (h *UrlHandler) ShortenUrl(c *gin.Context) {
 	slog.Info("URL shortened")
 
 	response := dto.UrlResponse{
-		ShortCode: fmt.Sprintf("%s/%s", c.Request.Host, shortCode),
+		ShortCode: fmt.Sprintf("%s/v1/%s", c.Request.Host, shortCode),
 	}
 
 	c.JSON(http.StatusOK, response)
 }
 
 func (h *UrlHandler) Redirect(c *gin.Context) {
-	shortCode := c.Request.PathValue("shortCode")
-	originalUrl, err := h.service.Redirect(c.Request.Context(), shortCode)
+	var payload dto.RedirectUrlResponse
+	if err := c.ShouldBindUri(&payload); err != nil {
+		slog.Warn("Failed to decode request uri", "error", err)
+		restErr := resterrors.NewUnprocessableEntityError("Failed to process request uri")
+		c.JSON(http.StatusUnprocessableEntity, restErr)
+		return
+	}
+
+	originalUrl, err := h.service.Redirect(c.Request.Context(), payload.ShortCode)
 	if err != nil {
 		if errors.Is(err, model.ErrUrlNotFound) {
 			slog.Warn("Short code not found", "error", err)

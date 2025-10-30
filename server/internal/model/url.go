@@ -10,13 +10,11 @@ var (
 
 type Url struct {
 	ID          int
-	ShortCode   string
 	OriginalUrl string
 }
 
-func NewUrl(originalUrl, shortCode string) *Url {
+func NewUrl(originalUrl string) *Url {
 	return &Url{
-		ShortCode:   shortCode,
 		OriginalUrl: originalUrl,
 	}
 }
