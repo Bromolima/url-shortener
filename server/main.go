@@ -37,6 +37,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	logger.Info("App running", "port", config.Env.ApiPort)
-	router.Run(fmt.Sprintf(":%s", config.Env.ApiPort))
+	logger.Info("App running", "port", config.Env.Server.Port)
+	router.Run(fmt.Sprintf(":%s", config.Env.Server.Port))
 }

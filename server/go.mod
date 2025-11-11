@@ -10,6 +10,7 @@ require (
 )
 
 require (
+	github.com/Netflix/go-env v0.1.2
 	github.com/gin-contrib/cors v1.7.6
 	github.com/gin-gonic/gin v1.11.0
 	github.com/golang/mock v1.6.0
