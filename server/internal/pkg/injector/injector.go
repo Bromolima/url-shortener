@@ -1,17 +1,17 @@
 package injector
 
 import (
-	"database/sql"
 	"log/slog"
 
+	"github.com/Bromolima/url-shortner-go/database"
 	"github.com/Bromolima/url-shortner-go/internal/http/handler"
 	"github.com/Bromolima/url-shortner-go/internal/repository"
 	"github.com/Bromolima/url-shortner-go/internal/service"
 	"go.uber.org/dig"
 )
 
-func SetupInjections(db *sql.DB, c *dig.Container) {
-	c.Provide(func() *sql.DB {
+func SetupInjections(db *database.Database, c *dig.Container) {
+	c.Provide(func() *database.Database {
 		return db
 	})
 	c.Provide(service.NewHashUrlService)

@@ -63,7 +63,7 @@ func (s *urlService) Redirect(ctx context.Context, shortCode string) (string, er
 		return "", model.ErrUrlNotFound
 	}
 
-	originalUrl, err := s.repository.FindByShortCode(ctx, id)
+	originalUrl, err := s.repository.Find(ctx, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return "", model.ErrUrlNotFound
