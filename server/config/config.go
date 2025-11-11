@@ -10,7 +10,7 @@ import (
 var Env Environment
 
 func LoadEnvironment() error {
-	err := godotenv.Load("infra/.env")
+	err := godotenv.Load()
 	if err != nil {
 
 		return err
