@@ -7,6 +7,7 @@ import (
 	"github.com/Bromolima/url-shortner-go/internal/model"
 )
 
+//go:generate mockgen -source=url.go -destination=../../mocks/url_repository.go -package=mocks
 type UrlRepository interface {
 	Save(ctx context.Context, originalUrl string) (int, error)
 	Find(ctx context.Context, id int) (string, error)

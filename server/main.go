@@ -10,6 +10,7 @@ import (
 	"github.com/Bromolima/url-shortner-go/database"
 	"github.com/Bromolima/url-shortner-go/internal/http/handler"
 	"github.com/Bromolima/url-shortner-go/internal/http/routes"
+	"github.com/Bromolima/url-shortner-go/internal/pkg/hash"
 	"github.com/Bromolima/url-shortner-go/internal/pkg/injector"
 	"github.com/Bromolima/url-shortner-go/internal/repository"
 	"github.com/Bromolima/url-shortner-go/internal/service"
@@ -30,7 +31,7 @@ func main() {
 	container := dig.New()
 
 	injector.Provide(container, database.NewPostgresConnection)
-	injector.Provide(container, service.NewHashUrlService)
+	injector.Provide(container, hash.NewIDHasher)
 	injector.Provide(container, repository.NewUrlRepository)
 	injector.Provide(container, service.NewUrlService)
 	injector.Provide(container, handler.NewUrlHandler)

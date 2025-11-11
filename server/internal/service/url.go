@@ -7,6 +7,7 @@ import (
 	"log/slog"
 
 	"github.com/Bromolima/url-shortner-go/internal/model"
+	"github.com/Bromolima/url-shortner-go/internal/pkg/hash"
 	"github.com/Bromolima/url-shortner-go/internal/repository"
 )
 
@@ -17,14 +18,14 @@ type UrlService interface {
 }
 
 type urlService struct {
-	repository     repository.UrlRepository
-	hashUrlService HashUrlService
+	repository repository.UrlRepository
+	idHasher   hash.IDHasher
 }
 
-func NewUrlService(repository repository.UrlRepository, hashUrlService HashUrlService) UrlService {
+func NewUrlService(repository repository.UrlRepository, idHasher hash.IDHasher) UrlService {
 	return &urlService{
-		repository:     repository,
-		hashUrlService: hashUrlService,
+		repository: repository,
+		idHasher:   idHasher,
 	}
 }
 
@@ -35,7 +36,7 @@ func (s *urlService) ShortenUrl(ctx context.Context, originalUrl string) (string
 	}
 
 	if id != 0 {
-		shortCode, err := s.hashUrlService.EncodeUrl(id)
+		shortCode, err := s.idHasher.EncodeUrl(id)
 		if err != nil {
 			return "", err
 		}
@@ -48,7 +49,7 @@ func (s *urlService) ShortenUrl(ctx context.Context, originalUrl string) (string
 		return "", err
 	}
 
-	shortCode, err := s.hashUrlService.EncodeUrl(id)
+	shortCode, err := s.idHasher.EncodeUrl(id)
 	if err != nil {
 		return "", err
 	}
@@ -57,7 +58,7 @@ func (s *urlService) ShortenUrl(ctx context.Context, originalUrl string) (string
 }
 
 func (s *urlService) Redirect(ctx context.Context, shortCode string) (string, error) {
-	id, err := s.hashUrlService.DecodeUrl(shortCode)
+	id, err := s.idHasher.DecodeUrl(shortCode)
 	if err != nil {
 		slog.Error("Failed to decode url", "error", err)
 		return "", model.ErrUrlNotFound

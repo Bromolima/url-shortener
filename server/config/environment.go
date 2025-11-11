@@ -3,10 +3,10 @@ package config
 import "time"
 
 type Environment struct {
-	Env       string `env:"ENVIRONMENT"`
-	SecretKey string `env:"SECRET_KEY"`
-	Server    Server
-	DB        PostgresDB
+	Env    string `env:"ENVIRONMENT"`
+	Salt   string `env:"SALT"`
+	Server Server
+	DB     PostgresDB
 }
 
 type Server struct {
