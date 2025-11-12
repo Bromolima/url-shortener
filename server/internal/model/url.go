@@ -10,7 +10,7 @@ var (
 
 type Url struct {
 	ID          int    `gorm:"primaryKey;autoIncrement"`
-	OriginalUrl string `gorm:"type:text"`
+	OriginalUrl string `gorm:"type:text;unique"`
 }
 
 func NewUrl(originalUrl string) *Url {
