@@ -61,7 +61,7 @@ func (s *urlService) Redirect(ctx context.Context, shortCode string) (string, er
 	id, err := s.idHasher.DecodeUrl(shortCode)
 	if err != nil {
 		slog.Error("Failed to decode url", "error", err)
-		return "", model.ErrUrlNotFound
+		return "", err
 	}
 
 	originalUrl, err := s.repository.Find(ctx, id)

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/Bromolima/url-shortner-go/internal/model"
 	"github.com/Bromolima/url-shortner-go/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -145,5 +146,93 @@ func TestUrlService_ShortenUrl(t *testing.T) {
 		assert.Error(t, err)
 		assert.Equal(t, expecterError, err)
 		assert.Equal(t, "", shortCode)
+	})
+}
+
+func TestUrlService_Redirect(t *testing.T) {
+	t.Run("should decode short code and return its original url", func(t *testing.T) {
+		control := gomock.NewController(t)
+		defer control.Finish()
+
+		ctx := context.Background()
+		idHasherMock := mocks.NewMockIDHasher(control)
+		urlRepoMock := mocks.NewMockUrlRepository(control)
+		service := NewUrlService(urlRepoMock, idHasherMock)
+
+		shortCode := "abcde"
+		id := 123
+		expectedOriginalUrl := "http://example.com"
+
+		idHasherMock.EXPECT().DecodeUrl(shortCode).Return(123, nil)
+		urlRepoMock.EXPECT().Find(ctx, id).Return(expectedOriginalUrl, nil)
+
+		originalUrl, err := service.Redirect(ctx, shortCode)
+
+		assert.NoError(t, err)
+		assert.Equal(t, originalUrl, expectedOriginalUrl)
+	})
+
+	t.Run("should return an error when hasher fails to decode url", func(t *testing.T) {
+		control := gomock.NewController(t)
+		defer control.Finish()
+
+		ctx := context.Background()
+		idHasherMock := mocks.NewMockIDHasher(control)
+		urlRepoMock := mocks.NewMockUrlRepository(control)
+		service := NewUrlService(urlRepoMock, idHasherMock)
+
+		shortCode := "abcde"
+		expectedError := errors.New("failed to decode code")
+
+		idHasherMock.EXPECT().DecodeUrl(shortCode).Return(0, expectedError)
+
+		originalUrl, err := service.Redirect(ctx, shortCode)
+
+		assert.Equal(t, err, expectedError)
+		assert.Equal(t, originalUrl, "")
+	})
+
+	t.Run("shoud return url not doun when url is not in database", func(t *testing.T) {
+		control := gomock.NewController(t)
+		defer control.Finish()
+
+		ctx := context.Background()
+		idHasherMock := mocks.NewMockIDHasher(control)
+		urlRepoMock := mocks.NewMockUrlRepository(control)
+		service := NewUrlService(urlRepoMock, idHasherMock)
+
+		shortCode := "abcde"
+		id := 123
+		expectedError := model.ErrUrlNotFound
+
+		idHasherMock.EXPECT().DecodeUrl(shortCode).Return(id, nil)
+		urlRepoMock.EXPECT().Find(ctx, id).Return("", gorm.ErrRecordNotFound)
+
+		originalUrl, err := service.Redirect(ctx, shortCode)
+
+		assert.Equal(t, err, expectedError)
+		assert.Equal(t, originalUrl, "")
+	})
+
+	t.Run("shoud return an error when repository fails to find original url", func(t *testing.T) {
+		control := gomock.NewController(t)
+		defer control.Finish()
+
+		ctx := context.Background()
+		idHasherMock := mocks.NewMockIDHasher(control)
+		urlRepoMock := mocks.NewMockUrlRepository(control)
+		service := NewUrlService(urlRepoMock, idHasherMock)
+
+		shortCode := "abcde"
+		id := 123
+		expectedError := errors.New("database connection failed")
+
+		idHasherMock.EXPECT().DecodeUrl(shortCode).Return(id, nil)
+		urlRepoMock.EXPECT().Find(ctx, id).Return("", expectedError)
+
+		originalUrl, err := service.Redirect(ctx, shortCode)
+
+		assert.Equal(t, err, expectedError)
+		assert.Equal(t, originalUrl, "")
 	})
 }
