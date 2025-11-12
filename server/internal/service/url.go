@@ -2,13 +2,13 @@ package service
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"log/slog"
 
 	"github.com/Bromolima/url-shortner-go/internal/model"
 	"github.com/Bromolima/url-shortner-go/internal/pkg/hash"
 	"github.com/Bromolima/url-shortner-go/internal/repository"
+	"gorm.io/gorm"
 )
 
 //go:generate mockgen -source=url.go -destination=../../mocks/url_service.go -package=mocks
@@ -31,7 +31,7 @@ func NewUrlService(repository repository.UrlRepository, idHasher hash.IDHasher) 
 
 func (s *urlService) ShortenUrl(ctx context.Context, originalUrl string) (string, error) {
 	id, err := s.repository.FindByOriginalUrl(ctx, originalUrl)
-	if err != nil {
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return "", err
 	}
 
@@ -66,7 +66,7 @@ func (s *urlService) Redirect(ctx context.Context, shortCode string) (string, er
 
 	originalUrl, err := s.repository.Find(ctx, id)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return "", model.ErrUrlNotFound
 		}
 
