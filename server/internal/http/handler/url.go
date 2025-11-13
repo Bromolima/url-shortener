@@ -53,10 +53,10 @@ func (h *UrlHandler) ShortenUrl(c *gin.Context) {
 	slog.Info("URL shortened")
 
 	response := dto.UrlResponse{
-		ShortCode: fmt.Sprintf("%s/v1/%s", c.Request.Host, shortCode),
+		ShortCode: fmt.Sprintf("%s%s", c.Request.Host, shortCode),
 	}
 
-	c.JSON(http.StatusOK, response)
+	c.JSON(http.StatusCreated, response)
 }
 
 func (h *UrlHandler) Redirect(c *gin.Context) {

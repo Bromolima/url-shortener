@@ -1,131 +1,142 @@
 package handler
 
-// import (
-// 	"context"
-// 	"database/sql"
-// 	"net/http"
-// 	"net/http/httptest"
-// 	"strings"
-// 	"testing"
+import (
+	"bytes"
+	"encoding/json"
+	"errors"
+	"net/http"
+	"net/http/httptest"
+	"testing"
 
-// 	"github.com/Bromolima/url-shortner-go/internal/mocks"
-// 	"github.com/Bromolima/url-shortner-go/internal/model"
-// 	"github.com/golang/mock/gomock"
-// )
+	"github.com/Bromolima/url-shortner-go/internal/http/dto"
+	"github.com/Bromolima/url-shortner-go/mocks"
+	"github.com/gin-gonic/gin"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+)
 
-// func Test_ShortenUrl(t *testing.T) {
-// 	ctrl := gomock.NewController(t)
-// 	ctx := context.Background()
+func setupTestRouter(control *gomock.Controller) (*gin.Engine, *mocks.MockUrlService) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	urlServiceMock := mocks.NewMockUrlService(control)
+	urlHandler := NewUrlHandler(urlServiceMock)
 
-// 	serviceMock := mocks.NewMockUrlService(ctrl)
-// 	urlHandler := NewUrlHandler(serviceMock)
+	router.POST("/v1/shorten", urlHandler.ShortenUrl)
 
-// 	testCases := []struct {
-// 		name           string
-// 		body           string
-// 		setupMocks     func()
-// 		expectedStatus int
-// 	}{
-// 		{
-// 			name: "when there is no error",
-// 			body: `{"url": "https://example.com"}`,
-// 			setupMocks: func() {
-// 				serviceMock.EXPECT().ShortenUrl(ctx, "https://example.com").Return("abcdef", nil)
-// 			},
-// 			expectedStatus: http.StatusCreated,
-// 		},
-// 		{
-// 			name:           "when there is an error to parse the requisition body",
-// 			body:           `{"example"}`,
-// 			setupMocks:     func() {},
-// 			expectedStatus: http.StatusUnprocessableEntity,
-// 		},
-// 		{
-// 			name:           "when the url is not valid",
-// 			body:           `{"url": ""}`,
-// 			setupMocks:     func() {},
-// 			expectedStatus: http.StatusBadRequest,
-// 		},
-// 		{
-// 			name: "when there is an internal error",
-// 			body: `{"url": "https://example.com"}`,
-// 			setupMocks: func() {
-// 				serviceMock.EXPECT().ShortenUrl(ctx, "https://example.com").Return("abcdef", sql.ErrConnDone)
-// 			},
-// 			expectedStatus: http.StatusInternalServerError,
-// 		},
-// 	}
+	return router, urlServiceMock
+}
 
-// 	for _, tt := range testCases {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			tt.setupMocks()
+func TestUrlHandler_ShortenUrl(t *testing.T) {
+	t.Run("should return an status created and the shortned url", func(t *testing.T) {
+		control := gomock.NewController(t)
+		defer control.Finish()
 
-// 			rec := httptest.NewRecorder()
-// 			req := httptest.NewRequest("POST", "/shorten", strings.NewReader(tt.body))
-// 			req.Header.Set("Content-Type", "application/json")
-// 			req.Host = "localhost:8080"
+		router, urlServiceMock := setupTestRouter(control)
 
-// 			urlHandler.ShortenUrl(rec, req)
+		expectedPayload := dto.ShortenUrlPayload{
+			OriginalUrl: "http://example.com",
+		}
+		urlBody, _ := json.Marshal(expectedPayload)
 
-// 			if rec.Code != tt.expectedStatus {
-// 				t.Error(rec.Code)
-// 			}
-// 		})
-// 	}
-// }
+		expectedShortUrl := "http://short.ly/abc123"
 
-// func Test_Redirect(t *testing.T) {
-// 	ctrl := gomock.NewController(t)
-// 	ctx := context.Background()
+		urlServiceMock.EXPECT().
+			ShortenUrl(gomock.Any(), expectedPayload.OriginalUrl).
+			Return(expectedShortUrl, nil)
 
-// 	serviceMock := mocks.NewMockUrlService(ctrl)
-// 	urlHandler := NewUrlHandler(serviceMock)
+		req, _ := http.NewRequest(http.MethodPost, "/v1/shorten", bytes.NewReader(urlBody))
+		req.Header.Set("Content-Type", "application/json")
 
-// 	testCases := []struct {
-// 		name           string
-// 		shortCode      string
-// 		originalUrl    string
-// 		setupMocks     func()
-// 		expectedStatus int
-// 	}{
-// 		{
-// 			name:        "when there is no error",
-// 			shortCode:   "abcdef",
-// 			originalUrl: "/originalUrl",
-// 			setupMocks: func() {
-// 				serviceMock.EXPECT().Redirect(ctx, "abcdef").Return("/originalUrl", nil)
-// 			},
-// 			expectedStatus: http.StatusFound,
-// 		},
-// 		{
-// 			name:        "when the original url is not found",
-// 			shortCode:   "abcdef",
-// 			originalUrl: "",
-// 			setupMocks: func() {
-// 				serviceMock.EXPECT().Redirect(ctx, "abcdef").Return("", model.ErrUrlNotFound)
-// 			},
-// 			expectedStatus: http.StatusNotFound,
-// 		},
-// 		{
-// 			name:        "when there is an internal error",
-// 			shortCode:   "abcdef",
-// 			originalUrl: "",
-// 			setupMocks: func() {
-// 				serviceMock.EXPECT().Redirect(ctx, "abcdef").Return("", sql.ErrConnDone)
-// 			},
-// 			expectedStatus: http.StatusInternalServerError,
-// 		},
-// 	}
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
 
-// 	for _, tt := range testCases {
-// 		tt.setupMocks()
+		var actualResponse dto.UrlResponse
+		if err := json.NewDecoder(w.Body).Decode(&actualResponse); err != nil {
+			t.Fatalf("erro ao decodificar resposta: %v", err)
+		}
 
-// 		rec := httptest.NewRecorder()
-// 		req := httptest.NewRequest("GET", "/"+tt.shortCode, nil)
+		assert.Equal(t, http.StatusCreated, w.Code)
+		assert.Equal(t, expectedShortUrl, actualResponse.ShortCode)
+	})
 
-// 		urlHandler.Redirect(rec, req)
-// 		if rec.Code != tt.expectedStatus {
-// 			t.Error(rec.Code)
-// 		}
-// 	}
-// }
+	t.Run("should return status bad request when body is invalid", func(t *testing.T) {
+		control := gomock.NewController(t)
+		defer control.Finish()
+
+		router, _ := setupTestRouter(control)
+
+		invalidPayload := []byte(
+			`"originalUrl": "http://example.com,"`,
+		)
+
+		req, _ := http.NewRequest(http.MethodPost, "/v1/shorten", bytes.NewReader(invalidPayload))
+		req.Header.Set("Content-Type", "application/json")
+
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+	})
+
+	t.Run("should return status unprocessable entity when body is invalid", func(t *testing.T) {
+		control := gomock.NewController(t)
+		defer control.Finish()
+
+		router, _ := setupTestRouter(control)
+
+		invalidPayload := []byte(`"url": "http://example.com"`)
+
+		req, _ := http.NewRequest(http.MethodPost, "/v1/shorten", bytes.NewReader(invalidPayload))
+		req.Header.Set("Content-Type", "application/json")
+
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+	})
+
+	t.Run("should return status bad request when url format is invalid", func(t *testing.T) {
+		control := gomock.NewController(t)
+		defer control.Finish()
+
+		router, _ := setupTestRouter(control)
+
+		invalidUrl := []byte(
+			`{"url": "invalidUrl"}`,
+		)
+
+		req, _ := http.NewRequest(http.MethodPost, "/v1/shorten", bytes.NewReader(invalidUrl))
+		req.Header.Set("Content-Type", "application/json")
+
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("should return an internal server error when service fails to save url", func(t *testing.T) {
+		control := gomock.NewController(t)
+		defer control.Finish()
+
+		router, urlServiceMock := setupTestRouter(control)
+
+		expectedPayload := dto.ShortenUrlPayload{
+			OriginalUrl: "http://example.com",
+		}
+		urlBody, _ := json.Marshal(expectedPayload)
+
+		internalError := errors.New("internal server error")
+
+		urlServiceMock.EXPECT().
+			ShortenUrl(gomock.Any(), expectedPayload.OriginalUrl).
+			Return("", internalError)
+
+		req, _ := http.NewRequest(http.MethodPost, "/v1/shorten", bytes.NewReader(urlBody))
+		req.Header.Set("Content-Type", "application/json")
+
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
+}

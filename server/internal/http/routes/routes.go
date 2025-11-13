@@ -13,9 +13,8 @@ func SetupRoutes(r *gin.Engine, c *dig.Container) error {
 		return err
 	}
 
-	g := r.Group("/v1")
-	g.POST("/shorten", urlHandler.ShortenUrl)
-	g.GET("/:short_code", urlHandler.Redirect)
+	r.POST("/shorten", urlHandler.ShortenUrl)
+	r.GET("/:short_code", urlHandler.Redirect)
 
 	return nil
 }
